@@ -1,23 +1,23 @@
-import random
+import random #Random이라는 모듈이 있습니다. module은 함수랑은 다르지만 ?
 import re
-from urllib.parse import quote
+from urllib.parse import quote #parse
 
 import requests
 
-import secret
+import secret #secret은 숨겨놓은 코드 목록이 담긴 파일
 
 generals = {
-    r'.*\b주사위.*': [
+    r'.*\b주사위.*': [  #\b boundary를 정해줌. 어절로 끊었을때 단어를 
         lambda g: '주사위를 던졌습니다 => ' + str(random.randint(1, 6)),
     ],
     r'.*\b동전.*': [
-        lambda g: '동전을 던졌습니다 => ' + random.choice(
+        lambda g: '동전을 던졌습니다 => ' + random.choice(  #choice는 가중치를 줄 수 없어서 강제로 앞면/뒷면만 *5를 해줘서 가중치를 줌.
             ['앞면', '뒷면'] * 5 + ['옆면!?', '사라졌다!']
         ),
     ],
     r'(.+?)(이?랑|하고|와|과|,)\s+(.+?)((가|이|이?랑|하고| 중).+)?\?$': [
         lambda g: random.choice([
-            g[0],
+            g[0],   #capture Group의 0, 2
             g[2],
             '글쎄?',
             '모두 쬲!',
@@ -31,7 +31,7 @@ generals = {
         '다른 분들은 어떻게 생각하세요?',
         '난 모르겠어.',
     ],
-    r'(.+?)\s+(vs|VS|Vs)\.?\s*(.+?)$': [
+    r'(.+?)\s+(vs|VS|Vs)\.?\s*(.+?)$': [   # +? ungreedy하게 먹어라
         lambda g: random.choice([
             g[0],
             g[2],
@@ -49,7 +49,7 @@ generals = {
 
 mentions = {
     r'.*주소검색\s?\:(.+)$': [
-        lambda g: search_naver(g[0].strip())
+        lambda g: search_naver(g[0].strip()) #search_naver라는 함수입니닿ㅎ 98번째 줄에 있음. 
     ],
     r'.*이름이\s+(뭐|모|뭔)(야|니|냐|에요|예요|가|가요)?\?$': [
         '내 이름은 애란봇이야. 사실은 시리보다 똑똑하지.',
@@ -83,20 +83,20 @@ mentions = {
 }
 
 
-def reply_to_pattern(text, pattern_map):
+def reply_to_pattern(text, pattern_map): #튜플?
     for pattern, replies in pattern_map.items():
-        m = re.match(pattern, text)
+        m = re.match(pattern, text) #()와 match되면 뽑아내라.
         if m:
             reply = random.choice(replies)
             if type(reply) == str:
                 return reply
             else:
-                return reply(m.groups())
+                return reply(m.groups())  # 
     return None
 
 
 def search_naver(keyword):
-    encoded_keyword = quote(keyword.encode('utf-8'))
+    encoded_keyword = quote(keyword.encode('utf-8'))  # quote :
     url = "https://openapi.naver.com/v1/search/local?query=%s" % encoded_keyword
     headers = {
         "X-Naver-Client-Id": secret.NAVER_API_ID,
@@ -104,7 +104,7 @@ def search_naver(keyword):
     }
     res = requests.request("GET", url, headers=headers).json()['items']
     if len(res) == 0:
-        return '"%s" 키워드로 검색한 결과가 없습니다.' % keyword
+        return '"%s" 키워드로 검색한 결과가 없습니다.' % keyword  # "%s" 
     else:
         return '\n'.join(
             "- %s: %s" % (re.sub(r'<.+?>', '', r['title']), r['roadAddress'])
